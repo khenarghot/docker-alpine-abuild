@@ -143,7 +143,7 @@ __keygen() {
 
 
 __run_command() {
-    if [ "x${NOCOMMAND}" == "xyes" ]; then
+    if [ "${NOCOMMAND}" = "yes" ]; then
 	echo "Disabled command execution" >&2
 	exit -1
     fi;

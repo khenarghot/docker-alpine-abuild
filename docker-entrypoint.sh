@@ -40,4 +40,4 @@ addgroup builder abuild
 
 sudo chown builder:abuild /home/builder
 
-exec sudo -u builder "$@"
+exec sudo -E -u builder "$@"
