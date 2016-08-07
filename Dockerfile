@@ -5,7 +5,7 @@ RUN set -x && apk --no-cache add alpine-sdk coreutils tini openssl-dev perl-dev 
   && mkdir /packages
 COPY /abuilder /bin/
 COPY /docker-entrypoint.sh /
-ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/docker-entrypoint.sh"]
 CMD ["abuilder", "-r"]
 WORKDIR /home/builder/package
 ENV RSA_PRIVATE_KEY_NAME ssh.rsa

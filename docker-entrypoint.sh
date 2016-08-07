@@ -16,19 +16,28 @@ set -e
 # sudo chown -R builder:abuild /home/builder/package
 # sudo chmod -R 0770 /home/builder/package
 
-adduser -G abuild -g "Alpine Package Builder" -s /bin/ash -D \
+# Get grup for given GID (awk required)
+function get_group() {
+    ID=$1
+    shift
+    
+    awk -F: "{ if ( \$3 == $ID ) print \$1 }" /etc/group
+}
+
+
+GROUP=`get_group $RGID`
+
+if [ "x$GROUP" = "x" ]; then
+    GROUP=builder
+    addgroup  -g $RGID $GROUP
+fi
+    
+
+adduser -G $GROUP -g "Alpine Package Builder" -s /bin/ash -D \
 	-u $RUID -h /home/builder builder
 
+addgroup builder abuild
+
 sudo chown builder:abuild /home/builder
-
-if [ "$1" = 'abuilder' ]; then
-	# we need to set the permissiosn here because docker mounts volumes as root
-	sudo chown -R builder:abuild \
-	     /packages
-
-	sudo chmod -R 0770 \
-	     /packages
-
-fi
 
 exec sudo -u builder "$@"

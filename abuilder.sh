@@ -1,6 +1,7 @@
-#!/bin/sh +x
+#!/bin/sh 
 
 # Wrapper for build Alpine Linux package with khenarghot/alpine-build
+
 
 BUILDERIMAGE=khenarghot/alpine-build
 ABUILDERDIR=${HOME}/.abuild
@@ -32,9 +33,9 @@ Usage:
 
    abuilder.sh <command>
 
-   Generate keys:
+   Generate keys and write them to configuraion file:
 
-   abuilder.sh <email> [destanation_dir]
+   abuilder.sh keygen <email> [destanation_dir]
 
 EOF
 
@@ -47,11 +48,15 @@ __check_image() {
 __preapre_envirion() {
     if [ ! -d ${ABUILDERDIR} ]; then
 	echo "Not found dir ${ABUILDERDIR}" >&2;
-	exit 1;
+	echo "Createing the one. You shuld create configuration file" >&2;
+	mkdir ${ABUILDERDIR}
     fi;
 
     if [ -f ${CONFIGFILE} ]; then
 	. ${CONFIGFILE}
+    else
+	echo "No cofiguration file ${CONFIGFILE} found." >&2;
+	echo "Runed with default configuraion" >&2
     fi;
 
     if [ ! -f ${PACKAGER_PRIVKEY} ]; then
@@ -61,9 +66,27 @@ __preapre_envirion() {
     if [ ! -f ${PACKAGER_PRIVKEY} ]; then
 	echo "Not found public key ${PACKAGER_PRIVKEY}.pub." >&2;
 	NOCOMMAND=yes
+    fi	
+}
+
+rewrite_config_privkey() {
+    config=${CONFIGFILE}
+    keyfile=$1
+    shift;
+    if [ $# -gt 0 ]; then
+	config=$1
+	shift;
     fi
-	
-	
+
+    touch $config
+
+    cp $config $config.orig
+
+    sed "s#\\(^\\s*PACKAGER_PRIVKEY=\\).*\$#\\1${keyfile}#" $config.orig > $config
+
+    if  ! grep -q $keyfile $config ; then
+	echo "PACKAGER_PRIVKEY=$keyfile" >> $config
+    fi
 }
 
 # ask for privkey unless non-interactive mode
@@ -93,10 +116,17 @@ get_privkey_file() {
 
 
 
+
+
 __keygen() {
     destanation_dir=${ABUILDERDIR}/
-    emailaddr=$1
-    shift
+    if [ $# -gt 0 ]; then
+	emailaddr=$1
+	shift
+    else
+	echo "Email address required!" >&2
+	exit 1
+    fi
     if [ $# -gt 0 ]; then
        destanation_dir=$1/
        shift
@@ -107,11 +137,13 @@ __keygen() {
     openssl genrsa -out $privkey 2048
 
     openssl rsa -in $privkey -pubout -out ${privkey}.pub
+
+    rewrite_config_privkey ${privkey}
 }
 
 
 __run_command() {
-    if [ "${NOCOMMAND}" == "yes" ]; then
+    if [ "x${NOCOMMAND}" == "xyes" ]; then
 	echo "Disabled command execution" >&2
 	exit -1
     fi;
