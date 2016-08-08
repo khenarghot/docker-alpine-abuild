@@ -154,7 +154,7 @@ __run_command() {
     shift
     
     RSA_PRIVATE_KEY_NAME=$(basename ${RSA_PRIVATE_KEY})
-    docker run --rm="true"\
+    docker run --rm="true" \
     -e RSA_PRIVATE_KEY="$(cat ${RSA_PRIVATE_KEY})" \
     -e RSA_PRIVATE_KEY_NAME="${RSA_PRIVATE_KEY_NAME}" \
     -e RUID=${RUID} -e RGID=${RGID} \

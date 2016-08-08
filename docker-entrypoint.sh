@@ -39,5 +39,7 @@ adduser -G $GROUP -g "Alpine Package Builder" -s /bin/ash -D \
 addgroup builder abuild
 
 sudo chown builder:abuild /home/builder
+sudo chown builder:abuild /packages
 
-exec sudo -E -u builder "$@"
+
+exec sudo -E HOME=/home/builder -u builder "$@"
